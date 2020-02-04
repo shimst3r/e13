@@ -19,9 +19,9 @@ def create_postings_table(connection: sqlite3.Connection):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Project e13 database utility.")
     parser.add_argument(
-        "connection_string", type=str, help="connection string for sqlite3 instance",
+        "database_path", type=str, help="database path to sqlite3 instance",
     )
     args = parser.parse_args()
-    connection = sqlite3.connect(args.connection_string)
+    connection = sqlite3.connect(args.database_path)
 
     create_postings_table(connection)

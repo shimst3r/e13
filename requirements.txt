@@ -17,6 +17,8 @@ graphene==2.1.8
 graphql-core==2.3.1
 graphql-relay==2.0.1
 gunicorn==20.0.4
+h11==0.9.0
+httptools==0.0.13
 hyperlink==19.0.0
 idna==2.8
 incremental==17.5.0
@@ -58,6 +60,9 @@ typed-ast==1.4.1
 typing-extensions==3.7.4.1
 ujson==1.35
 urllib3==1.25.8
+uvicorn==0.11.2
+uvloop==0.14.0
 w3lib==1.21.0
+websockets==8.1
 wrapt==1.11.2
 zope.interface==4.7.1
