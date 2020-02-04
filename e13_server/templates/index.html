@@ -17,8 +17,9 @@
         <p class="lead">Project e13 is on a mission to make the academic job market more accessible.</p>
         <hr class="my-4">
         <p>By crawling the job postings of various academic institutes and providing them in a centralised location,
-            looking for jobs in academia has never been easier.<br>If you or your institution is interested in being
-            displayed below, contact me via <a href="mailto:shimst3r@gmail.com">email</a>.</p>
+            looking for jobs in academia has never been easier.</p>
+        <p>If you or your institution is interested in being displayed below, contact me via <a
+                href="mailto:shimst3r@gmail.com">email</a>.</p>
         <p>The project team is utilising modern tools for gathering content, mainly <a
                 href="https://scrapy.org/">Scrapy</a>, <a href="https://spacy.io/">spaCy</a>, and <a
                 href="https://www.starlette.io/">Starlette</a>. We are deeply grateful for open source!</p>
@@ -29,8 +30,8 @@
             <div class='col-6'>
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-title">{{ title }}</h6>
-                        <h7 class="card_subtitle text-muted">{{ reference }}</h7>
+                        <h5 class="card-title">{{ title }}</h5>
+                        <h7 class="card_subtitle text-muted">Reference: {{ reference }}</h7>
                         <p class="card-text">{{ superior }}<br>
                             Deadline: {{ deadline }}</p>
                         <a href="{{ url_for('documents', document_id=id) }}" class="btn btn-primary">Download
