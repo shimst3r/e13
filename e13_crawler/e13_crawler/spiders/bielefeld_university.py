@@ -62,7 +62,8 @@ def clean_posting_text(text: str) -> typing.Optional[typing.List[str]]:
         if match := re.search(r"wiss\d+", reference):
             reference = match.group()
         if match := re.search(r"\d{2}.\d{2}.\d{4}", deadline):
-            deadline = match.group()
+            day, month, year = match.group().split(".")
+            deadline = f"{year}-{month}-{day}"
     except ValueError as value_error:
         LOGGER.error(value_error)
         return None
