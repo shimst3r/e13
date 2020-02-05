@@ -17,12 +17,23 @@ def create_postings_table(connection: sqlite3.Connection):
         connection.execute(query)
 
 
+def create_index_on_deadline_date(connection: sqlite3.Connection):
+    """Creates an index on `postings.deadline` cast to DATE."""
+    query = """
+    CREATE INDEX IF NOT EXISTS idx_deadline_as_date
+    ON postings (DATE(deadline) ASC);
+    """
+    with connection:
+        connection.execute(query)
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Project e13 database utility.")
-    parser.add_argument(
+    PARSER = argparse.ArgumentParser(description="Project e13 database utility.")
+    PARSER.add_argument(
         "database_path", type=str, help="database path to sqlite3 instance",
     )
-    args = parser.parse_args()
-    connection = sqlite3.connect(args.database_path)
+    ARGS = PARSER.parse_args()
+    CONNECTION = sqlite3.connect(ARGS.database_path)
 
-    create_postings_table(connection)
+    create_postings_table(connection=CONNECTION)
+    create_index_on_deadline_date(connection=CONNECTION)

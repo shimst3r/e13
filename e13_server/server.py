@@ -3,6 +3,7 @@ import json
 import logging
 import pathlib
 import typing
+from datetime import date
 
 import aiosqlite
 import async_lru
@@ -15,6 +16,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import _TemplateResponse, Jinja2Templates
 
+DATE_FMT = "%Y-%m-%d"
 LOGGER = logging.getLogger(__name__)
 TEMPLATES = Jinja2Templates(directory="templates")
 
@@ -38,10 +40,12 @@ async def homepage(request: Request) -> _TemplateResponse:
     query = """
     SELECT id, title, superior, institution, DATE(deadline)
     FROM postings
+    WHERE DATE(deadline) >= ?
     ORDER BY DATE(deadline) ASC;
     """
+    today = date.today().strftime(DATE_FMT)
     async with aiosqlite.connect(database_path) as connection:
-        async with connection.execute(query) as cursor:
+        async with connection.execute(query, [today]) as cursor:
             postings = await cursor.fetchall()
 
     return TEMPLATES.TemplateResponse(
