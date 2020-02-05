@@ -47,7 +47,7 @@ class BielefeldUniversitySpider(scrapy.Spider):
         # pylint: disable=no-member
         database_path = str(pathlib.Path(self.database_path))
         query = """
-        INSERT INTO postings (reference, title, superior, institution, deadline, created_at, document)
+        INSERT INTO postings (reference, title, superior, deadline, institution, created_at, document)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """
         institution = "Bielefeld University"
