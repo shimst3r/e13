@@ -8,8 +8,9 @@ def create_postings_table(connection: sqlite3.Connection):
     query = """
     CREATE TABLE IF NOT EXISTS postings(
         id INTEGER PRIMARY KEY,
-        reference, title, superior, deadline, created_at TEXT,
-        document BLOB
+        reference, title, superior, institution, deadline, created_at TEXT,
+        document BLOB,
+        UNIQUE(reference, institution)
     );
     """
     with connection:

@@ -14,6 +14,8 @@ DATE_FMT = "%Y-%m-%d"
 
 
 class BielefeldUniversitySpider(scrapy.Spider):
+    """A spider for scraping academic job postings from Bielefeld University."""
+
     name = "bielefeld_university"
     start_urls = [f"{BASE_URL}/auswiss_2013.html/"]
 
@@ -45,18 +47,20 @@ class BielefeldUniversitySpider(scrapy.Spider):
         # pylint: disable=no-member
         database_path = str(pathlib.Path(self.database_path))
         query = """
-        INSERT INTO postings (reference, title, superior, deadline, created_at, document)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO postings (reference, title, superior, institution, deadline, created_at, document)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """
+        institution = "Bielefeld University"
         today = date.today().strftime(DATE_FMT)
 
         with sqlite3.connect(database_path) as conn:
-            result = conn.execute(query, [*metadata, today, response.body])
+            conn.execute(query, [*metadata, institution, today, response.body])
 
-        LOGGER.info(f"Added postings entry {result}.")
+        LOGGER.info(f"Added postings entry {metadata[0]} at {institution}.")
 
 
 def clean_posting_text(text: str) -> typing.Optional[typing.List[str]]:
+    """Clean and process the metadata that is scraped for each postings entry."""
     try:
         reference, title, superior, deadline = text.split("\n\n")
         if match := re.search(r"wiss\d+", reference):
