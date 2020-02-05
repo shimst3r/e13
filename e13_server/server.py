@@ -36,7 +36,7 @@ async def homepage(request: Request) -> _TemplateResponse:
     """The landing page that presents a list of job postings."""
     database_path = request.app.state.database_path
     query = """
-    SELECT id, reference, title, superior, DATE(deadline)
+    SELECT id, title, superior, institution, DATE(deadline)
     FROM postings
     ORDER BY DATE(deadline) ASC;
     """
