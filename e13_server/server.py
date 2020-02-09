@@ -73,6 +73,7 @@ async def _retrieve_document_by_id(
     SELECT document
     FROM documents
     WHERE postings_id = ?
+    ORDER BY document ASC, postings_id ASC
     """
     async with aiosqlite.connect(database_path) as connection:
         async with connection.execute(query, [postings_id]) as cursor:

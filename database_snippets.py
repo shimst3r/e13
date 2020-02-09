@@ -54,6 +54,16 @@ def create_documents_table(connection: sqlite3.Connection):
         connection.execute(query)
 
 
+def create_index_for__retrieve_document_by_id(connection: sqlite3.Connection):
+    """Creates an index for improving query time on `document_by_id` endpoint."""
+    query = """
+    CREATE INDEX IF NOT EXISTS idx__retrieve_document_by_id
+    ON documents (document ASC, postings_id ASC)
+    """
+    with connection:
+        connection.execute(query)
+
+
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description="Project e13 database utility.")
     PARSER.add_argument(
@@ -65,3 +75,4 @@ if __name__ == "__main__":
     create_postings_table(connection=CONNECTION)
     create_metadata_table(connection=CONNECTION)
     create_documents_table(connection=CONNECTION)
+    create_index_for__retrieve_document_by_id(connection=CONNECTION)
