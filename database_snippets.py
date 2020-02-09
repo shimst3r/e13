@@ -3,13 +3,36 @@ import argparse
 import sqlite3
 
 
+def activate_foreign_key_support(connection: sqlite3.Connection):
+    """
+    Per default, foreign key support is deactivated. Running this snippet
+    ensures that foreign keys work as expected.
+    """
+    query = "PRAGMA foreign_keys = ON;"
+    with connection:
+        connection.execute(query)
+
+
 def create_postings_table(connection: sqlite3.Connection):
-    """Creates the postings table which stores information about job postings."""
+    """Creates the postings table which stores database internals per posting."""
     query = """
     CREATE TABLE IF NOT EXISTS postings(
         id INTEGER PRIMARY KEY,
-        reference, title, superior, institution, deadline, created_at TEXT,
-        document BLOB,
+        created_at TEXT
+    );
+    """
+    with connection:
+        connection.execute(query)
+
+
+def create_metadata_table(connection: sqlite3.Connection):
+    """Creates the metadata table which stores metadata of job postings."""
+    query = """
+    CREATE TABLE IF NOT EXISTS metadata(
+        id INTEGER PRIMARY KEY,
+        postings_id INTEGER,
+        reference, title, superior, institution, deadline TEXT,
+        FOREIGN KEY(postings_id) REFERENCES postings(id),
         UNIQUE(reference, institution)
     );
     """
@@ -17,11 +40,15 @@ def create_postings_table(connection: sqlite3.Connection):
         connection.execute(query)
 
 
-def create_index_on_deadline_date(connection: sqlite3.Connection):
-    """Creates an index on `postings.deadline` cast to DATE."""
+def create_documents_table(connection: sqlite3.Connection):
+    """Creates the documents table which stores PDFs of job postings."""
     query = """
-    CREATE INDEX IF NOT EXISTS idx_deadline_as_date
-    ON postings (DATE(deadline) ASC);
+    CREATE TABLE IF NOT EXISTS documents(
+        id INTEGER PRIMARY KEY,
+        postings_id INTEGER,
+        document BLOB,
+        FOREIGN KEY(postings_id) REFERENCES postings(id)
+    );
     """
     with connection:
         connection.execute(query)
@@ -36,4 +63,5 @@ if __name__ == "__main__":
     CONNECTION = sqlite3.connect(ARGS.database_path)
 
     create_postings_table(connection=CONNECTION)
-    create_index_on_deadline_date(connection=CONNECTION)
+    create_metadata_table(connection=CONNECTION)
+    create_documents_table(connection=CONNECTION)

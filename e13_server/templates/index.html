@@ -26,7 +26,7 @@
     </div>
     <div class="container">
         <div class="row row-cols-2">
-            {% for id, title, superior, institution, deadline in postings %}
+            {% for postings_id, title, superior, institution, deadline in postings %}
             <div class='col-6'>
                 <div class="card">
                     <div class="card-body">
@@ -34,7 +34,7 @@
 						<h6 class="card_subtitle text-muted">{{ institution }}</h6>
                         <p class="card-text">{{ superior }}<br>
                             Deadline: {{ deadline }}</p>
-                        <a href="{{ url_for('documents', document_id=id) }}" class="btn btn-primary">Download
+                        <a href="{{ url_for('documents', postings_id=postings_id) }}" class="btn btn-primary">Download
                             PDF</a>
                     </div>
                 </div>

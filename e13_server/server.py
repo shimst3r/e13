@@ -25,9 +25,9 @@ async def document_by_id(request: Request) -> Response:
     """Returns the PDF specified by `document_id`."""
 
     database_path = request.app.state.database_path
-    document_id = request.path_params["document_id"]
+    postings_id = request.path_params["postings_id"]
     document = await _retrieve_document_by_id(
-        database_path=database_path, document_id=document_id
+        database_path=database_path, postings_id=postings_id
     )
     LOGGER.info(_retrieve_document_by_id.cache_info())
 
@@ -38,8 +38,8 @@ async def homepage(request: Request) -> _TemplateResponse:
     """The landing page that presents a list of job postings."""
     database_path = request.app.state.database_path
     query = """
-    SELECT id, title, superior, institution, DATE(deadline)
-    FROM postings
+    SELECT postings_id, title, superior, institution, DATE(deadline)
+    FROM metadata
     WHERE DATE(deadline) >= ?
     ORDER BY DATE(deadline) ASC;
     """
@@ -56,7 +56,7 @@ async def homepage(request: Request) -> _TemplateResponse:
 def _build_app(database_path: str) -> Starlette:
     routes = [
         Route("/", homepage),
-        Route("/documents/{document_id:int}", document_by_id, name="documents"),
+        Route("/documents/{postings_id:int}", document_by_id, name="documents"),
         Mount("/static", app=StaticFiles(directory="static"), name="static"),
     ]
     _app = Starlette(debug=True, routes=routes)
@@ -67,15 +67,15 @@ def _build_app(database_path: str) -> Starlette:
 
 @async_lru.alru_cache(maxsize=32)
 async def _retrieve_document_by_id(
-    database_path: str, document_id: int
+    database_path: str, postings_id: int
 ) -> typing.AsyncGenerator[bytes, None]:
     query = """
     SELECT document
-    FROM postings
-    WHERE id = ?
+    FROM documents
+    WHERE postings_id = ?
     """
     async with aiosqlite.connect(database_path) as connection:
-        async with connection.execute(query, [document_id]) as cursor:
+        async with connection.execute(query, [postings_id]) as cursor:
             document = await cursor.fetchone()
 
     return document[0]
