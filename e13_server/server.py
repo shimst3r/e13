@@ -38,10 +38,10 @@ async def homepage(request: Request) -> _TemplateResponse:
     """The landing page that presents a list of job postings."""
     database_path = request.app.state.database_path
     query = """
-    SELECT postings_id, title, superior, institution, DATE(deadline)
+    SELECT postings_id, title, superior, institution, date(deadline)
     FROM metadata
-    WHERE DATE(deadline) >= ?
-    ORDER BY DATE(deadline) ASC;
+    WHERE date(deadline) >= ?
+    ORDER BY date(deadline) ASC;
     """
     today = date.today().strftime(DATE_FMT)
     async with aiosqlite.connect(database_path) as connection:

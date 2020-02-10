@@ -55,10 +55,20 @@ def create_documents_table(connection: sqlite3.Connection):
 
 
 def create_index_for__retrieve_document_by_id(connection: sqlite3.Connection):
-    """Creates an index for improving query time on `document_by_id` endpoint."""
+    """Creates a covering index for improving query time on `document_by_id` endpoint."""
     query = """
     CREATE INDEX IF NOT EXISTS idx__retrieve_document_by_id
     ON documents (document ASC, postings_id ASC)
+    """
+    with connection:
+        connection.execute(query)
+
+
+def create_index_for_homepage(connection: sqlite3.Connection):
+    """Creates an index for improving query time on `homepage` endpoint."""
+    query = """
+    CREATE INDEX IF NOT EXISTS idx_homepage
+    ON metadata (date(deadline), postings_id, title, superior, institution)
     """
     with connection:
         connection.execute(query)
@@ -76,3 +86,4 @@ if __name__ == "__main__":
     create_metadata_table(connection=CONNECTION)
     create_documents_table(connection=CONNECTION)
     create_index_for__retrieve_document_by_id(connection=CONNECTION)
+    create_index_for_homepage(connection=CONNECTION)
