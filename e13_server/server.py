@@ -53,10 +53,30 @@ async def homepage(request: Request) -> _TemplateResponse:
     )
 
 
+async def result_page(request: Request) -> _TemplateResponse:
+    """The result page for keyword searches."""
+    database_path = request.app.state.database_path
+    query = """
+    SELECT m.postings_id, m.title, m.superior, m.institution, date(m.deadline)
+    FROM metadata m
+    INNER JOIN fulltexts f
+    WHERE date(m.deadline) >= ? AND f.text MATCH ?
+    ORDER BY date(m.deadline) ASC;
+    """
+    today = date.today().strftime(DATE_FMT)
+
+    LOGGER.info(request.query_params)
+
+    return TEMPLATES.TemplateResponse(
+        "index.html", {"request": request, "postings": []}
+    )
+
+
 def _build_app(database_path: str) -> Starlette:
     routes = [
         Route("/", homepage),
         Route("/documents/{postings_id:int}", document_by_id, name="documents"),
+        Route("/results", result_page, name="results"),
         Mount("/static", app=StaticFiles(directory="static"), name="static"),
     ]
     _app = Starlette(debug=True, routes=routes)
