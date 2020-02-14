@@ -1,6 +1,15 @@
 """A collection of utility scripts used for creating and managing the SQLite database."""
 import argparse
+import io
 import sqlite3
+from typing import List, Tuple
+
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
+from pdfminer.pdfpage import PDFPage
+from pdfminer.pdfparser import PDFParser
 
 
 def activate_foreign_key_support(connection: sqlite3.Connection):
@@ -87,6 +96,56 @@ def create_virtual_table_fulltexts(connection: sqlite3.Connection):
         connection.execute(query)
 
 
+def populate_virtual_table_fulltexts(connection: sqlite3.Connection):
+    """
+    Populates the fulltexts virtual table based on the documents in the
+    documents table.
+    """
+    with connection:
+        full_texts = _read_and_process_raw_pdf(connection=connection)
+        _write_processed_pdfs_as_fulltexts(connection=connection, full_texts=full_texts)
+
+
+def _process_raw_pdf(document: io.BytesIO) -> str:
+    """Reads a raw PDF and returns its content."""
+    output_string = io.StringIO()
+    parser = PDFParser(document)
+    doc = PDFDocument(parser)
+    rsrcmgr = PDFResourceManager()
+    device = TextConverter(rsrcmgr, output_string, laparams=LAParams())
+    interpreter = PDFPageInterpreter(rsrcmgr, device)
+    for page in PDFPage.create_pages(doc):
+        interpreter.process_page(page)
+
+    return output_string.getvalue()
+
+
+def _read_and_process_raw_pdf(connection: sqlite3.Connection) -> List[Tuple[int, str]]:
+    query = """
+    SELECT postings_id, document
+    FROM documents
+    """
+
+    full_texts = []
+    for postings_id, document in connection.execute(query):
+        pdf = io.BytesIO(document)
+        text = _process_raw_pdf(pdf)
+        full_texts.append((postings_id, text))
+
+    return full_texts
+
+
+def _write_processed_pdfs_as_fulltexts(
+    connection: sqlite3.Connection, full_texts: List[Tuple[int, str]]
+):
+    query = """
+    INSERT INTO fulltexts (postings_id, text)
+    VALUES (?, ?)
+    """
+
+    connection.executemany(query, full_texts)
+
+
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description="Project e13 database utility.")
     PARSER.add_argument(
@@ -101,3 +160,4 @@ if __name__ == "__main__":
     create_index_for__retrieve_document_by_id(connection=CONNECTION)
     create_index_for_homepage(connection=CONNECTION)
     create_virtual_table_fulltexts(connection=CONNECTION)
+    populate_virtual_table_fulltexts(connection=CONNECTION)
