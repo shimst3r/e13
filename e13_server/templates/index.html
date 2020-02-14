@@ -25,13 +25,25 @@
                 href="https://www.starlette.io/">Starlette</a>. We are deeply grateful for open source!</p>
     </div>
     <div class="container">
+        <form action="/results">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="">🔍</span>
+                </div>
+                <input type="text" class="form-control" id="search-keyword" name="search_keyword" placeholder="Keyword"
+                    required="required" aria-label="Search Keyword" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                </div>
+            </div>
+        </form>
         <div class="row row-cols-2">
             {% for postings_id, title, superior, institution, deadline in postings %}
             <div class='col-6'>
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">{{ title }}</h5>
-						<h6 class="card_subtitle text-muted">{{ institution }}</h6>
+                        <h6 class="card_subtitle text-muted">{{ institution }}</h6>
                         <p class="card-text">{{ superior }}<br>
                             Deadline: {{ deadline }}</p>
                         <a href="{{ url_for('documents', postings_id=postings_id) }}" class="btn btn-primary">Download

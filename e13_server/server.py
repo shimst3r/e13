@@ -37,13 +37,14 @@ async def document_by_id(request: Request) -> Response:
 async def homepage(request: Request) -> _TemplateResponse:
     """The landing page that presents a list of job postings."""
     database_path = request.app.state.database_path
+    today = date.today().strftime(DATE_FMT)
+
     query = """
     SELECT postings_id, title, superior, institution, date(deadline)
     FROM metadata
     WHERE date(deadline) >= ?
     ORDER BY date(deadline) ASC;
     """
-    today = date.today().strftime(DATE_FMT)
     async with aiosqlite.connect(database_path) as connection:
         async with connection.execute(query, [today]) as cursor:
             postings = await cursor.fetchall()
@@ -53,16 +54,48 @@ async def homepage(request: Request) -> _TemplateResponse:
     )
 
 
+async def result_page(request: Request) -> _TemplateResponse:
+    """The result page for keyword searches."""
+    database_path = request.app.state.database_path
+    keyword = request.query_params["search_keyword"]
+    today = date.today().strftime(DATE_FMT)
+
+    postings = await _filter_postings_by_keyword(
+        database_path=database_path, keyword=keyword, date=today
+    )
+    return TEMPLATES.TemplateResponse(
+        "index.html", {"request": request, "postings": postings}
+    )
+
+
 def _build_app(database_path: str) -> Starlette:
     routes = [
         Route("/", homepage),
         Route("/documents/{postings_id:int}", document_by_id, name="documents"),
+        Route("/results", result_page, name="results"),
         Mount("/static", app=StaticFiles(directory="static"), name="static"),
     ]
     _app = Starlette(debug=True, routes=routes)
     _app.state.database_path = str(pathlib.Path(database_path))
 
     return _app
+
+
+@async_lru.alru_cache(maxsize=32)
+async def _filter_postings_by_keyword(
+    database_path: str, keyword: str, date: str
+) -> typing.Awaitable[typing.List]:
+    query = """
+    SELECT m.postings_id, m.title, m.superior, m.institution, date(m.deadline)
+    FROM metadata m
+    INNER JOIN fulltexts f
+    ON m.postings_id = f.postings_id
+    WHERE date(m.deadline) >= ? AND f.text MATCH ?
+    ORDER BY date(m.deadline) ASC;
+    """
+    async with aiosqlite.connect(database_path) as connection:
+        async with connection.execute(query, [date, keyword]) as cursor:
+            return await cursor.fetchall()
 
 
 @async_lru.alru_cache(maxsize=32)
@@ -81,6 +114,8 @@ async def _retrieve_document_by_id(
 
     return document[0]
 
+
+APP = _build_app(database_path="../postings.db")
 
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description="Project e13 server.")
